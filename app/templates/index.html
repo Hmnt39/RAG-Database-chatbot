@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RAG Chatbot UI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-800 min-h-screen font-sans text-white">
+
+  <div class="max-w-3xl mx-auto mt-16 px-4">
+    
+    <!-- Header -->
+    <div class="mb-8 text-center">
+      <h1 class="text-3xl font-bold tracking-tight">🤖 RAG Chatbot</h1>
+      <p class="text-gray-300 mt-2">Search your knowledge base with AI-powered retrieval</p>
+    </div>
+
+    <!-- Glass Card -->
+    <div class="backdrop-blur-lg bg-white/10 border border-white/20 shadow-xl rounded-2xl p-6">
+
+      <!-- Model Info -->
+      <div class="bg-white/10 border border-white/20 p-4 rounded-xl mb-6">
+        <h3 class="font-semibold text-indigo-300 mb-2">Model Details</h3>
+        <div class="text-sm text-gray-200 space-y-1">
+          <p><span class="text-gray-400">Name:</span> {{ model_info.name }}</p>
+          <p><span class="text-gray-400">Mode:</span> {{ model_info.mode }}</p>
+          <p><span class="text-gray-400">Embedding Dim:</span> {{ model_info.embedding_dim }}</p>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <div class="mb-6">
+        <label class="block text-sm text-gray-300 mb-2">Ask something</label>
+        <div class="flex gap-2">
+          <input id="query"
+                 type="text"
+                 placeholder="Type your query..."
+                 class="flex-grow bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition"/>
+          
+          <button onclick="search()"
+                  class="bg-indigo-500 hover:bg-indigo-600 px-5 py-3 rounded-xl font-medium transition shadow-lg hover:scale-[1.03]">
+            Search
+          </button>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="mb-6 flex justify-between items-center">
+        <button onclick="updateEmbeddings()"
+                class="bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-lg text-sm font-medium transition shadow">
+          🔄 Update Embeddings
+        </button>
+      </div>
+
+      <!-- Results -->
+      <div id="results"
+           class="bg-black/20 border border-white/10 rounded-xl p-4 min-h-[120px] text-sm text-gray-200">
+        <p class="text-gray-400">Results will appear here...</p>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    async function search() {
+      const query = document.getElementById("query").value;
+
+      document.getElementById("results").innerHTML =
+        "<p class='text-gray-400 animate-pulse'>Thinking...</p>";
+
+      const response = await fetch("/search?user_query=" + encodeURIComponent(query), {
+        method: "POST"
+      });
+
+      const data = await response.json();
+
+      document.getElementById("results").innerHTML =
+        `<div class="space-y-2">
+          <p class="text-indigo-300 font-medium">Answer</p>
+          <div class="bg-white/5 p-3 rounded-lg leading-relaxed">
+            ${data.response.replace(/\n/g, "<br>")}
+          </div>
+        </div>`;
+    }
+
+    async function updateEmbeddings() {
+      document.getElementById("results").innerHTML =
+        "<p class='text-gray-400 animate-pulse'>Updating embeddings...</p>";
+
+      const response = await fetch("/update_embeddings", {
+        method: "POST"
+      });
+
+      const data = await response.json();
+
+      document.getElementById("results").innerHTML =
+        `<p class="text-emerald-400 font-medium">${data.message}</p>`;
+    }
+  </script>
+
+</body>
+</html>
